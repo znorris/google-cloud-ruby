@@ -12,13 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# [START storage_dependencies]
-source "https://rubygems.org"
+def quickstart bucket_name:
+  # [START storage_quickstart]
+  # Imports the Google Cloud client library
+  require "google/cloud/storage"
 
-gem "google-cloud-storage"
-# [END storage_dependencies]
+  # Instantiates a client
+  storage = Google::Cloud::Storage.new
 
-group :test do
-  gem "google-cloud-kms"
-  gem "minitest", "~> 5.13"
+  # bucket_name = "The name of the bucket to be created, i.e. 'new-bucket'"
+
+  # Creates the new bucket
+  bucket = storage.create_bucket bucket_name
+
+  puts "Bucket #{bucket.name} was created."
+  # [END storage_quickstart]
+end
+
+if $PROGRAM_NAME == __FILE__
+  quickstart "quickstart_bucket"
 end
