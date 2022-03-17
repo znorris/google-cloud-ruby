@@ -62,7 +62,19 @@ module Google
         # The log_name is a String that controls the name of the Stackdriver
         # log to write to. If it is nil, the default log_name for this Logger
         # is used.
-        RequestInfo = ::Struct.new :trace_id, :log_name, :env, :trace_sampled
+        # 
+        # The env is a Hash of the request's Rack environment or `nil` if not
+        # available.
+        # 
+        # The span_id is a String that controls the span ID sent with the log
+        # entry. If it is nil, no span ID is sent.
+        # 
+        # The trace_sampled is a Boolean that controls the trace_sampled flag 
+        # sent with the log entry. If it is nil, no trace_sampled is sent.
+        # 
+        # The http_request is a Hash that controls the http request sent with
+        # the log entry. If it is nil, no http request is sent.
+        RequestInfo = ::Struct.new :trace_id, :log_name, :env, :trace_sampled, :span_id
 
         ##
         # The Google Cloud writer object that calls to `#write_entries` are made
@@ -443,16 +455,19 @@ module Google
         # @param [RequestInfo] info Info about the current request. Optional.
         #     If not present, a new RequestInfo is created using the remaining
         #     parameters.
-        # @param [String, nil] trace_id The trace ID, or `nil` if no trace ID
-        #     should be logged.
-        # @param [String, nil] log_name The log name to use, or nil to use
-        #     this logger's default.
         # @param [Hash, nil] env The request's Rack environment or `nil` if not
         #     available.
-        #
+        # @param [String, nil] trace_id The trace ID, or `nil` if no trace ID
+        #     should be logged.
+        # @param [String, nil] log_name The log name to use, or `nil` to use
+        #     this logger's default.
+        # @param [Boolean, nil] trace_sampled Flag, or `nil` that indicates if
+        #     the trace is sampled.
+        # @param [String, nil] span_id The span ID, or `nil` if no span ID
+        #     should be logged.
         def add_request_info info: nil, env: nil, trace_id: nil, log_name: nil,
-                             trace_sampled: nil
-          info ||= RequestInfo.new trace_id, log_name, env, trace_sampled
+                             trace_sampled: nil, span_id: nil
+          info ||= RequestInfo.new trace_id, log_name, env, trace_sampled, span_id
 
           @request_info_var.value = info
 
@@ -544,6 +559,7 @@ module Google
             unless info.trace_id.nil? || @project.nil?
               entry.trace = "projects/#{@project}/traces/#{info.trace_id}"
             end
+            entry.span_id = info.span_id if info.span_id && info.trace_id
             entry.trace_sampled = info.trace_sampled if entry.trace_sampled.nil?
           end
 

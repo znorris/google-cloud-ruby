@@ -407,6 +407,12 @@ module Google
         attr_accessor :trace_sampled
 
         ##
+        # ID of the span associated with the log entry, if any.
+        # Optional.
+        # @return [String]
+        attr_accessor :span_id
+
+        ##
         # @private Determines if the Entry has any data.
         def empty?
           log_name.nil? &&
@@ -418,7 +424,8 @@ module Google
             operation.empty? &&
             trace.nil? &&
             source_location.empty? &&
-            trace_sampled.nil?
+            trace_sampled.nil? &&
+            span_id.nil?
         end
 
         ##
@@ -436,7 +443,8 @@ module Google
             operation:       operation.to_grpc,
             trace:           trace.to_s,
             source_location: source_location.to_grpc,
-            trace_sampled:   !(!trace_sampled)
+            trace_sampled:   !(!trace_sampled),
+            span_id:         span_id.to_s
           )
           # Add payload
           append_payload grpc
@@ -466,6 +474,7 @@ module Google
                                       grpc.source_location
                                     )
             e.trace_sampled = grpc.trace_sampled
+            e.span_id = grpc.span_id
           end
         end
 

@@ -91,8 +91,9 @@ module Google
           env["rack.logger"] = logger
           trace_id = get_trace_id env
           log_name = get_log_name env
+          span_id = get_span_id env
           logger.add_request_info trace_id: trace_id, log_name: log_name,
-                                  env: env
+                                  env: env, span_id: span_id
           begin
             @app.call env
           ensure
@@ -110,6 +111,17 @@ module Google
         def get_trace_id env
           trace_context = Stackdriver::Core::TraceContext.parse_rack_env env
           trace_context.trace_id
+        end
+
+        # Determine the span ID for this request.
+        #
+        # @private
+        # @param [Hash] env The Rack environment.
+        # @return [String] The span ID.
+        #
+        def get_span_id env
+          trace_context = Stackdriver::Core::TraceContext.parse_rack_env env
+          trace_context.span_id
         end
 
         ##
