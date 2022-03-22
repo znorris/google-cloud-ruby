@@ -74,7 +74,7 @@ module Google
         # 
         # The http_request is a Hash that controls the http request sent with
         # the log entry. If it is nil, no http request is sent.
-        RequestInfo = ::Struct.new :trace_id, :log_name, :env, :trace_sampled, :span_id
+        RequestInfo = ::Struct.new :trace_id, :log_name, :env, :trace_sampled, :span_id, :http_request
 
         ##
         # The Google Cloud writer object that calls to `#write_entries` are made
@@ -465,9 +465,12 @@ module Google
         #     the trace is sampled.
         # @param [String, nil] span_id The span ID, or `nil` if no span ID
         #     should be logged.
+        #
+        # @param [Hash, nil] http_request The HTTP request, or `nil` if no
+        #     http request structure should be logged.
         def add_request_info info: nil, env: nil, trace_id: nil, log_name: nil,
-                             trace_sampled: nil, span_id: nil
-          info ||= RequestInfo.new trace_id, log_name, env, trace_sampled, span_id
+                             trace_sampled: nil, span_id: nil, http_request: nil
+          info ||= RequestInfo.new trace_id, log_name, env, trace_sampled, span_id, http_request
 
           @request_info_var.value = info
 
@@ -561,6 +564,7 @@ module Google
             end
             entry.span_id = info.span_id if info.span_id && info.trace_id
             entry.trace_sampled = info.trace_sampled if entry.trace_sampled.nil?
+            entry.http_request = info.http_request if info.http_request
           end
 
           writer.write_entries entry, log_name: actual_log_name,
